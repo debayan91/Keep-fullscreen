@@ -1,25 +1,90 @@
-function applyFullscreenStyles() {
-  const target = document.querySelector('.IZ65Hb-n0tgWb.di8rgd-r4nke.IZ65Hb-QQhtn.oT9UPb');
-  if (target) {
-    target.style.setProperty('width', '90vw', 'important');
-    target.style.setProperty('max-height', '90vh', 'important');
-    target.style.setProperty('left', '5vw', 'important');
-    target.style.setProperty('top', '5vh', 'important');
-    target.style.setProperty('position', 'fixed', 'important');
-    target.style.setProperty('transform', 'none', 'important');
+function injectBaseStyles() {
+  const styleId = 'keep-fullscreen-base-styles';
+  if (document.getElementById(styleId)) return;
+
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.textContent = `
+    /* The active class that forces fullscreen */
+    .keep-fullscreen-active {
+      width: 90vw !important;
+      height: 90vh !important;
+      max-height: 90vh !important;
+      left: 5vw !important;
+      top: 5vh !important;
+      position: fixed !important;
+      transform: none !important;
+      z-index: 2001 !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .keep-fullscreen-active .IZ65Hb-TBnied {
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      max-height: 100% !important;
+    }
+
+    .keep-fullscreen-active .IZ65Hb-s2gQvd {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow-y: auto !important;
+      height: 100% !important;
+    }
+
+    .keep-fullscreen-active .IZ65Hb-r4nke-haAclf, 
+    .keep-fullscreen-active .IZ65Hb-qJTHM-haAclf {
+       flex: 1 1 auto !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function hasRealText(popup) {
+  // Check all contenteditable areas within the popup
+  const textboxes = popup.querySelectorAll('[contenteditable="true"]');
+  for (const box of textboxes) {
+    if (box.textContent.trim().length > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function updateFullscreenState() {
+  const popup = document.querySelector('.IZ65Hb-n0tgWb.IZ65Hb-QQhtn');
+  if (popup) {
+    if (hasRealText(popup)) {
+      popup.classList.add('keep-fullscreen-active');
+    } else {
+      popup.classList.remove('keep-fullscreen-active');
+    }
   }
 }
 
+// Initial injection
+injectBaseStyles();
+
+// Monitor for changes
 const observer = new MutationObserver(() => {
-  // Try to find and apply styles to the target element
-  // Since we use subtree: true, it checks whenever any element is added/modified
-  applyFullscreenStyles();
+  injectBaseStyles();
+  updateFullscreenState();
 });
 
 observer.observe(document.body, {
   childList: true,
   subtree: true,
+  characterData: true // Important to catch text changes directly
 });
 
-// Run immediately in case it's already in the DOM
-applyFullscreenStyles();
+// Real-time input listener for immediate response
+document.addEventListener('input', (e) => {
+  if (e.target.closest('.IZ65Hb-n0tgWb.IZ65Hb-QQhtn')) {
+    updateFullscreenState();
+  }
+}, true);
+
+// Fallback check
+setInterval(updateFullscreenState, 1000);
