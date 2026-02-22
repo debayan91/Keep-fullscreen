@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Google Keep Fullscreen",
+  "version": "1.0",
+  "description": "Makes Google Keep note popups nearly full-screen.",
+  "content_scripts": [
+    {
+      "matches": ["https://keep.google.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
